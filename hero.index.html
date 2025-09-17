@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MARY-hero - Painel de Ocorrências</title>
+  <style>
+    body {
+      background-color: #0a0a23;
+      color: #e0e0ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 20px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 3em;
+      color: #00ffff;
+      text-shadow: 0 0 15px #00ffff;
+      margin-bottom: 20px;
+    }
+    #alertSound {
+      display: none;
+    }
+    #occurrences {
+      width: 90%;
+      max-width: 700px;
+      background: #111144;
+      border: 2px solid #00ffff;
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 0 30px #00ffff;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    .occurrence {
+      background: #001f3f;
+      border: 2px solid #00ffff;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      padding: 15px;
+      position: relative;
+      cursor: pointer;
+      color: #00ffff;
+      font-weight: bold;
+      font-size: 1.3em;
+      text-shadow: 0 0 10px #00ffff;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    #mapFrame {
+      margin-top: 20px;
+      width: 100%;
+      height: 300px;
+      border-radius: 15px;
+      border: 3px solid #00ffff;
+      box-shadow: 0 0 25px #00ffff;
+    }
+    .warning-banner {
+      background:#ff0044;
+      color:#fff;
+      padding:10px;
+      text-align:center;
+      font-weight:bold;
+      text-shadow: 0 0 8px #ff0044;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 9999;
+    }
+    body {
+      padding-top: 50px; /* espaço para o banner fixo */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="warning-banner">
+    ⚠️ PROTÓTIPO: NÃO DEPENDA DESTE SITE PARA MONITORAMENTO REAL! ⚠️
+  </div>
+
+  <h1>MARY-hero - Painel de Ocorrências</h1>
+
+  <div id="occurrences">
+    <p>Nenhuma ocorrência ainda.</p>
+  </div>
+
+  <iframe id="mapFrame" src="" allowfullscreen></iframe>
+
+  <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
+  <script>
+    const occurrencesDiv = document.getElementById('occurrences');
+    const mapFrame = document.getElementById('mapFrame');
+    const alertSound = document.getElementById('alertSound');
+
+    function getQueryParams() {
+      const params = {};
+      location.search.slice(1).split('&').forEach(pair => {
+        const [k,v] = pair.split('=');
+        if(k) params[k] = decodeURIComponent(v);
+      });
+      return params;
+    }
+
+    const params = getQueryParams();
+
+    if(params.lat && params.lon){
+      addOccurrence(`Ocorrência Emergencial`, params.lat, params.lon);
+    }
+
+    function addOccurrence(name, lat, lon) {
+      occurrencesDiv.innerHTML = '';
+
+      const occ = document.createElement('div');
+      occ.className = 'occurrence';
+      occ.textContent = name;
+
+      occ.onclick = () => {
+        mapFrame.src = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+      };
+
+      occurrencesDiv.appendChild(occ);
+
+      alertSound.play().catch(() => {});
+
+      let blink = true;
+      const originalTitle = document.title;
+      const interval = setInterval(() => {
+        document.title = blink ? `⚠️ ${name} ⚠️` : originalTitle;
+        blink = !blink;
+      }, 1000);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        document.title = originalTitle;
+      }, 60000);
+    }
+  </script>
+</body>
+</html>
